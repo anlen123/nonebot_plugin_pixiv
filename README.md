@@ -34,21 +34,32 @@ pixiv pid
 
 例如：
 pixiv 233
+
 pixiv 1000
+
+
 ## 配置
 一共有四个配置项目
 
 
 IMGROOT=/root/
+
 AIOHTTP=http://127.0.0.1:1081
+
 FFMPEG=/usr/bin/ffmpeg
+
 PIXIV_COOKIES=xxx
 
 分别是:
+
 1.保存图片的根目录
+
 2.http代理地址
+
 3.ffmpeg地址(不配置这个不支持动图)
+
 4.你的p站的cookies (不配置不支持R18)
+
 
 
 ## 安装
