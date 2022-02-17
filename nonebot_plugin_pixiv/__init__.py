@@ -5,7 +5,7 @@ from nonebot import run
 import nonebot
 from nonebot.rule import Rule
 from nonebot.plugin import on_message, on_regex
-from nonebot.adapters.onebot.v11 import Bot, Event, Message
+from nonebot.adapters.onebot.v11 import Bot, Event, Message,MessageSegment
 import aiohttp
 import re
 import os
@@ -21,6 +21,7 @@ global_config = nonebot.get_driver().config
 config = global_config.dict()
 
 imgRoot=config.get('imgroot') if config.get('imgroot') else f"{os.environ['HOME']}/"
+print(imgRoot)
 proxy_aiohttp = config.get('aiohttp') if config.get('aiohttp') else ""
 pixiv_cookies = config.get('pixiv_cookies') if config.get('pixiv_cookies') else ""
 ffmpeg = config.get('ffmpeg') if config.get('ffmpeg') else "/usr/bin/ffmpeg"
@@ -166,15 +167,18 @@ async def pixiv_rev(bot: Bot, event: Event):
         if not names :
             await bot.send(event=event,message="发生了异常情况")
         else:
-            msg = ""
+            msg = None
             for name in names:
                 if name:
                     for t in name:
                         size = os.path.getsize(f"{imgRoot}QQbotFiles/pixiv/{t}")
                         if size//1024//1024>=10:
                             await yasuo(f"{imgRoot}QQbotFiles/pixiv/{t}")
-                        msg+=f"[CQ:image,file=file:///{imgRoot}QQbotFiles/pixiv/{t}]"
-            await bot.send(event=event,message=Message(msg))
+                        msg+=MessageSegment.image(f"file:///{imgRoot}QQbotFiles/pixiv/{t}")
+            try:
+                await bot.send(event=event,message=msg)
+            except:
+                await bot.send(event=event,message="查询失败, 帐号有可能发生风控，请检查")
     else:
         await bot.send(event=event,message=Message("参数错误\n样例: 'pixivRank 1' , 1:day,7:weekly,30:monthly"))    
 
@@ -184,13 +188,27 @@ async def send(pid:str,event:Event,bot:Bot):
     if not names :
         await bot.send(event=event,message="没有这个pid的图片")
     else:
-        msg = ""
+        msg = None
         for name in names:
             size = os.path.getsize(f"{imgRoot}QQbotFiles/pixiv/{name}")
             if size//1024//1024>=10:
                 await yasuo(f"{imgRoot}QQbotFiles/pixiv/{name}")
-            msg+=f"[CQ:image,file=file:///{imgRoot}QQbotFiles/pixiv/{name}]"
-        await bot.send(event=event,message=Message(msg))
+            msg+=MessageSegment.image(f"file:///{imgRoot}QQbotFiles/pixiv/{name}")
+        try:
+            await bot.send(event=event,message=msg)
+        except:
+            await bot.send(event=event,message="查询失败, 帐号有可能发生风控，请检查,尝试一张一张的发图片ing")
+            try:
+                for name in names:
+                    size = os.path.getsize(f"{imgRoot}QQbotFiles/pixiv/{name}")
+                    if size//1024//1024>=10:
+                        await yasuo(f"{imgRoot}QQbotFiles/pixiv/{name}")
+                    await bot.send(event=event,message=MessageSegment.image(f"file:///{imgRoot}QQbotFiles/pixiv/{name}"))
+            except:
+                await bot.send(event=event,message="查询失败, 帐号有可能发生风控，请检查!!!")
+
+
+
 
 async def yasuo(path):
     while os.path.getsize(path)//1024//1024>=10:
@@ -222,7 +240,10 @@ async def GIF_send(url:str,pid:str,event:Event,bot:Bot):
             await run(f"rm -rf {p}/{pid}.gif")
             await run(f"mv {p}/{pid}_temp.gif {p}/{pid}.gif")
             size = os.path.getsize(f"{p}/{pid}.gif")
-        await bot.send(event=event,message=Message(f"[CQ:image,file=file:///{p}/{pid}.gif]"))
+        try:
+            await bot.send(event=event,message=MessageSegment.image(f"file:///{p}/{pid}.gif"))
+        except:
+            await bot.send(event=event,message="查询失败, 帐号有可能发生风控，请检查")
         return
     async with aiohttp.ClientSession() as session:
         response= await session.get(url=url, headers=headersCook,proxy=proxy_aiohttp)
@@ -249,8 +270,10 @@ async def GIF_send(url:str,pid:str,event:Event,bot:Bot):
                 await run(f"rm -rf {p}/{pid}.gif")
                 await run(f"mv {p}/{pid}_temp.gif {p}/{pid}.gif")
                 size = os.path.getsize(f"{p}/{pid}.gif")
-
-            await bot.send(event=event,message=Message(f"[CQ:image,file=file:///{p}/{pid}.gif]"))
+            try:
+                await bot.send(event=event,message=MessageSegment.image(f"file:///{p}/{pid}.gif"))
+            except:
+                await bot.send(event=event,message="查询失败, 帐号有可能发生风控，请检查")
 
 async def run(cmd:str):
     print(cmd)

@@ -33,9 +33,24 @@ _✨ NoneBot pixiv.net查询图片插件(支持多图和动图) ✨_
 pixiv pid
 
 例如：
+
 pixiv 233
 
 pixiv 1000
+
+pixivRank 1
+日榜
+
+pixivRank 7 
+周榜
+
+pixivRank 30
+月榜
+
+直接发这种连接也能直接识别发送图片
+
+https://www.pixiv.net/artworks/(\d+)|illust_id=(\d+)
+
 
 
 ## 配置
