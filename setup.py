@@ -1,6 +1,3 @@
-#!/root/miniconda3/bin/python
-# -*- coding: utf-8 -*- 
-
 
 
 from setuptools import setup, find_packages
@@ -9,7 +6,7 @@ setup(
     name='nonebot_plugin_pixiv',
     version="1.0.3",
     description=(
-        'pixiv.net查询图片插件(支持多图和动图)'
+        'pixiv.net 查询图片，支持动图和多图'
     ),
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",

@@ -63,7 +63,7 @@ PIXIV_COOKIES=xxx
 
 
 ## 安装
-pip install nonebot_plugin_pixiv
+pip install nonebot-plugin-pixiv
 
 ## 使用
 nonebot.load_plugin('nonebot_plugin_pixiv')
