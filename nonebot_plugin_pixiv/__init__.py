@@ -1,17 +1,11 @@
+import nonebot
 from pathlib import Path
-
-import nonebot
+from typing import List
 from nonebot import run
-import nonebot
 from nonebot.rule import Rule
 from nonebot.plugin import on_message, on_regex
-from nonebot.adapters.onebot.v11 import Bot, Event, Message,MessageSegment
-import aiohttp
-import re
-import os
-import random
-import cv2
-import asyncio
+from nonebot.adapters.onebot.v11 import Bot, Event, Message,MessageSegment,GroupMessageEvent
+import aiohttp,re,os,random,cv2,asyncio
 _sub_plugins = set()
 _sub_plugins |= nonebot.load_plugins(
     str((Path(__file__).parent / "plugins").
@@ -176,7 +170,10 @@ async def pixiv_rev(bot: Bot, event: Event):
                             await yasuo(f"{imgRoot}QQbotFiles/pixiv/{t}")
                         msg+=MessageSegment.image(f"file:///{imgRoot}QQbotFiles/pixiv/{t}")
             try:
-                await bot.send(event=event,message=msg)
+                if isinstance(event,GroupMessageEvent):
+                    await send_forward_msg_group(bot,event,'qqbot',msg)
+                else:
+                    await bot.send(event=event,message=msg)
             except:
                 await bot.send(event=event,message="查询失败, 帐号有可能发生风控，请检查")
     else:
@@ -195,7 +192,11 @@ async def send(pid:str,event:Event,bot:Bot):
                 await yasuo(f"{imgRoot}QQbotFiles/pixiv/{name}")
             msg+=MessageSegment.image(f"file:///{imgRoot}QQbotFiles/pixiv/{name}")
         try:
-            await bot.send(event=event,message=msg)
+            if isinstance(event,GroupMessageEvent):
+                await send_forward_msg_group(bot,event,'qqbot',msg)
+            else:
+                await bot.send(event=event,message=msg)
+
         except:
             await bot.send(event=event,message="查询失败, 帐号有可能发生风控，请检查,尝试一张一张的发图片ing")
             try:
@@ -284,3 +285,19 @@ async def run(cmd:str):
 
     stdout, stderr = await proc.communicate()
     return (stdout+stderr).decode()
+
+
+# 合并消息
+async def send_forward_msg_group(
+        bot: Bot,
+        event: GroupMessageEvent,
+        name: str,
+        msgs: List[str],
+):
+    def to_json(msg):
+        return {"type": "node", "data": {"name": name, "uin": bot.self_id, "content": msg}}
+
+    messages = [to_json(msg) for msg in msgs]
+    await bot.call_api(
+        "send_group_forward_msg", group_id=event.group_id, messages=messages
+    )
