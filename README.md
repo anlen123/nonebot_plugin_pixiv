@@ -23,8 +23,8 @@ _✨ NoneBot pixiv.net查询图片插件(支持多图和动图) ✨_
   <a href="https://raw.githubusercontent.com/cscs181/QQ-Github-Bot/master/LICENSE">
     <img src="https://img.shields.io/github/license/cscs181/QQ-Github-Bot.svg" alt="license">
   </a>
-  <a href="https://pypi.python.org/pypi/nonebot-plugin-status">
-    <img src="https://img.shields.io/pypi/v/nonebot-plugin-status.svg" alt="pypi">
+  <a href="https://pypi.python.org/pypi/nonebot-plugin-pixiv">
+    <img src="https://img.shields.io/pypi/v/nonebot-plugin-pixiv.svg" alt="pypi">
   </a>
   <img src="https://img.shields.io/badge/python-3.7+-blue.svg" alt="python">
 </p>
