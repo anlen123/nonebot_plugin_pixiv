@@ -15,7 +15,6 @@ global_config = nonebot.get_driver().config
 config = global_config.dict()
 
 imgRoot=config.get('imgroot') if config.get('imgroot') else f"{os.environ['HOME']}/"
-print(imgRoot)
 proxy_aiohttp = config.get('aiohttp') if config.get('aiohttp') else ""
 pixiv_cookies = config.get('pixiv_cookies') if config.get('pixiv_cookies') else ""
 ffmpeg = config.get('ffmpeg') if config.get('ffmpeg') else "/usr/bin/ffmpeg"
@@ -39,9 +38,6 @@ if pixiv_cookies:
 async def checkConfig(bot: Bot,event: Event) -> bool:
     if not pixiv_cookies:
         await bot.send(event=event,message="pixiv_cookies未配置!!")
-        return False
-    elif not proxy_aiohttp:
-        await bot.send(event=event,message="proxy_aiohttp未配置!!")
         return False
     return True
     
