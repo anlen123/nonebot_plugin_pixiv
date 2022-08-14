@@ -5,7 +5,7 @@ from nonebot import run
 from nonebot.rule import Rule
 from nonebot.plugin import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, Event, Message, MessageSegment, GroupMessageEvent
-import aiohttp, re, os, random, cv2, asyncio, base64
+import aiohttp, re, os, random, cv2, asyncio, base64, json
 
 _sub_plugins = set()
 _sub_plugins |= nonebot.load_plugins(
@@ -19,6 +19,8 @@ imgRoot = config.get('imgroot') if config.get('imgroot') else f"{os.environ['HOM
 proxy_aiohttp = config.get('aiohttp') if config.get('aiohttp') else ""
 pixiv_cookies = config.get('pixiv_cookies') if config.get('pixiv_cookies') else ""
 ffmpeg = config.get('ffmpeg') if config.get('ffmpeg') else "/usr/bin/ffmpeg"
+pixiv_r18 = config.get('pixiv_r18') if config.get('pixiv_r18') else True
+pixiv_r18 = eval(pixiv_r18)
 
 pathHome = imgRoot + "QQbotFiles/pixiv"
 if not os.path.exists(pathHome):
@@ -81,6 +83,9 @@ async def pixiv_rev(bot: Bot, event: Event):
     if not await checkConfig(bot, event):
         return
     pid = str(event.message).strip()[6:].strip()
+    if (not pixiv_r18) and  await pan_R18(pid):
+        await bot.send(event=event,message="不支持R18，请修改配置后操作！")
+        return
     xx = (await checkGIF(pid))
     if xx != "NO":
         await GIF_send(xx, pid, event, bot)
@@ -314,3 +319,44 @@ async def send_forward_msg_group(
     await bot.call_api(
         "send_group_forward_msg", group_id=event.group_id, messages=messages
     )
+
+
+async def pan_R18(PID):
+    print("判断是不是R18")
+    url = f"https://www.pixiv.net/artworks/{PID}"
+    async with aiohttp.ClientSession() as session:
+        x = await session.get(url=url, headers=headersCook,proxy=proxy_aiohttp)
+        content = await x.content.read()
+        tags = re.findall('\"tags\"\:\[(.*?)\]',content.decode())[0]
+        print(tags)
+        if 'R-18' in tags:
+            return True
+        else:
+            return False
+
+# pixivS = on_regex(pattern="^来点")
+
+
+# @pixivS.handle()
+# async def pixivS_rev(bot: Bot, event: Event):
+    # if not await checkConfig(bot, event):
+        # return
+    # pid = ""
+    # key = str(event.message).strip()[2:].strip() + " 100users入り"
+    # async with aiohttp.ClientSession() as session:
+        # x = await session.get(url="https://www.pixiv.net/ajax/search/artworks/"+str(key), headers=headersCook, proxy=proxy_aiohttp)
+        # # x = await session.get(url=url, headers=headers)
+        # content = await x.content.read()
+        # content = json.loads(content)
+        # print(content['error'])
+        # if not content['error']:
+            # if content['body']['illustManga']['data']:
+                # pid = random.choice(content['body']['illustManga']['data'])['id']
+    # if pid:
+        # xx = (await checkGIF(pid))
+        # if xx != "NO":
+            # await GIF_send(xx, pid, event, bot)
+        # else:
+            # await send(pid, event, bot)
+    # else:
+        # await bot.send(event=event,message="抱歉！没有搜索到任何内容")
