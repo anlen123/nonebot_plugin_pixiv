@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='nonebot_plugin_pixiv',
-    version="1.0.7",
+    version="1.0.9",
     description=(
         'pixiv.net 查询图片，支持动图和多图'
     ),

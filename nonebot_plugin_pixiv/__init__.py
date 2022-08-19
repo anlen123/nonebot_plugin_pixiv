@@ -19,7 +19,7 @@ imgRoot = config.get('imgroot') if config.get('imgroot') else f"{os.environ['HOM
 proxy_aiohttp = config.get('aiohttp') if config.get('aiohttp') else ""
 pixiv_cookies = config.get('pixiv_cookies') if config.get('pixiv_cookies') else ""
 ffmpeg = config.get('ffmpeg') if config.get('ffmpeg') else "/usr/bin/ffmpeg"
-pixiv_r18 = config.get('pixiv_r18') if config.get('pixiv_r18') else True
+pixiv_r18 = config.get('pixiv_r18') if config.get('pixiv_r18') else "True"
 pixiv_r18 = eval(pixiv_r18)
 
 pathHome = imgRoot + "QQbotFiles/pixiv"
