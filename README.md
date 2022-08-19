@@ -65,6 +65,8 @@ FFMPEG=/usr/bin/ffmpeg
 
 PIXIV_COOKIES=xxx
 
+PIXIV_R18=True
+
 分别是:
 
 1.保存图片的根目录
@@ -74,6 +76,8 @@ PIXIV_COOKIES=xxx
 3.ffmpeg地址(不配置这个不支持动图)
 
 4.你的p站的cookies (不配置不支持R18)
+
+5.是否支持R18 （默认支持）
 
 
 
