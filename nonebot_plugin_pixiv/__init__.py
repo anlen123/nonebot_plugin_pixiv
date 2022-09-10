@@ -66,6 +66,9 @@ async def pixivURL(bot: Bot, event: Event):
     if not await checkConfig(bot, event):
         return
     pid = re.findall("https://www.pixiv.net/artworks/(\d+)|illust_id=(\d+)", str(event.get_message()))
+    if (not pixiv_r18) and  await pan_R18(pid):
+        await bot.send(event=event,message="不支持R18，请修改配置后操作！")
+        return
     if pid:
         pid = [x for x in pid[0] if x][0]
         xx = (await checkGIF(pid))
