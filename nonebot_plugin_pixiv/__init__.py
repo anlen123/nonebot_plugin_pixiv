@@ -19,7 +19,7 @@ headersCook = {
 if pixiv_cookies:
     headersCook['cookie'] = pixiv_cookies
 
-PIXIV_R18 = config.get('pixiv_r18', True)
+PIXIV_R18 = config.get('pixiv_r18', 'True')
 if PIXIV_R18 and (PIXIV_R18 == 'True' or PIXIV_R18 == 'False'):
     PIXIV_R18 = eval(PIXIV_R18)
 elif PIXIV_R18:
@@ -35,7 +35,7 @@ elif PIXIV_R18:
     except:
         print("配置错误！！")
 
-BAN_PIXIV_R18 = eval(config.get('ban_pixiv_r18', []))
+BAN_PIXIV_R18 = eval(config.get('ban_pixiv_r18', '[]'))
 BAN_PIXIV_R18 = [int(_) for _ in BAN_PIXIV_R18]
 
 pathHome = f"{imgRoot}QQbotFiles/pixiv"
