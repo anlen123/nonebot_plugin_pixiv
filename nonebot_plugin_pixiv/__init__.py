@@ -9,6 +9,7 @@ global_config = nonebot.get_driver().config
 config = global_config.dict()
 
 imgRoot = config.get('imgroot') if config.get('imgroot') else f"{os.environ['HOME']}/"
+# imgRoot = config.get('imgroot') if config.get('imgroot') else f"{os.environ['HOME']}/"
 proxy_aiohttp = config.get('aiohttp') if config.get('aiohttp') else ""
 pixiv_cookies = config.get('pixiv_cookies') if config.get('pixiv_cookies') else ""
 ffmpeg = config.get('ffmpeg') if config.get('ffmpeg') else "/usr/bin/ffmpeg"
@@ -63,7 +64,6 @@ pixivURL = on_message(rule=isPixivURL())
 
 
 async def validate_r18(bot: Bot, event: Event, PID: str) -> bool:
-    print("R18检查ing")
     if not await pan_R18(PID):
         return True
     if isinstance(PIXIV_R18, bool):
@@ -139,11 +139,27 @@ async def main(PID):
         if content.get('error'):
             return
         url = content.get('body').get('urls').get('original')
+
+        if not url:
+            print("官方api没找到尝试用第三方api")
+            resp2 = await session.get(url=f"https://api.obfs.dev/api/pixiv/illust?id={PID}", headers=headersCook, proxy=proxy_aiohttp)
+            cc = await resp2.json()
+            if cc.get('error'):
+                return
+            url = cc.get('illust').get('meta_single_page')
+            if url:
+                url = url.get('original_image_url')
+            else:
+                url = cc.get('illust').get('meta_pages')[0].get('image_urls').get('original')
+        else:
+            print("使用官方api")
+
+
         name = url[url.rfind("/") + 1:]
         # 后缀
         suffix = name.split(".")[1]
         names = []
-        num = 1
+        num = 0
         if os.path.exists(f"{imgRoot}QQbotFiles/pixiv/" + name):
             while os.path.exists(f"{imgRoot}QQbotFiles/pixiv/" + name) and num <= 6:
                 names.append(name)
@@ -360,6 +376,8 @@ async def pan_R18(PID) -> bool:
             return False
         tag = content['body']['tags']['tags'][0]['tag']
         if tag == 'R-18':
+            print("是R-18")
             return True
         else:
+            print("不是R-18")
             return False
