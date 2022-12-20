@@ -9,7 +9,6 @@ global_config = nonebot.get_driver().config
 config = global_config.dict()
 
 imgRoot = config.get('imgroot') if config.get('imgroot') else f"{os.environ['HOME']}/"
-# imgRoot = config.get('imgroot') if config.get('imgroot') else f"{os.environ['HOME']}/"
 proxy_aiohttp = config.get('aiohttp') if config.get('aiohttp') else ""
 pixiv_cookies = config.get('pixiv_cookies') if config.get('pixiv_cookies') else ""
 ffmpeg = config.get('ffmpeg') if config.get('ffmpeg') else "/usr/bin/ffmpeg"
