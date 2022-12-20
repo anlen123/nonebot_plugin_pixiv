@@ -75,13 +75,9 @@ PIXIV_R18=True
 
 3.ffmpeg地址(不配置这个不支持动图)
 
-4.你的p站的cookies (不配置不支持动图)
+4.你的p站的cookies (不配置不支持R18)
 
 5.是否支持R18 （默认支持）
-PS： R18支持两种配置方式
-PIXIV_R18=True # 为所有群启用R18
-PIXIV_R18=False # 不启用R18
-PIXIV_R18=["123", "456"] #只为群123 和 群456启用r18
 
 
 

@@ -19,9 +19,7 @@ headersCook = {
 if pixiv_cookies:
     headersCook['cookie'] = pixiv_cookies
 
-PIXIV_R18 = config.get('pixiv_r18')
-if not PIXIV_R18:
-    PIXIV_R18 = True
+PIXIV_R18 = config.get('pixiv_r18', True)
 if PIXIV_R18 and (PIXIV_R18 == 'True' or PIXIV_R18 == 'False'):
     PIXIV_R18 = eval(PIXIV_R18)
 elif PIXIV_R18:
@@ -33,8 +31,12 @@ elif PIXIV_R18:
             for x in PIXIV_R18:
                 if not (isinstance(x, int) or (isinstance(x, str) and str(x).isdigit())):
                     print("配置错误！！pixiv_r18中应该是int类型或者str的数值类型")
+        PIXIV_R18 = [int(_) for _ in PIXIV_R18]
     except:
         print("配置错误！！")
+
+BAN_PIXIV_R18 = eval(config.get('ban_pixiv_r18', []))
+BAN_PIXIV_R18 = [int(_) for _ in BAN_PIXIV_R18]
 
 pathHome = f"{imgRoot}QQbotFiles/pixiv"
 if not os.path.exists(pathHome):
@@ -68,9 +70,16 @@ async def validate_r18(bot: Bot, event: Event, PID: str) -> bool:
         if not PIXIV_R18:
             await bot.send(event=event, message="不支持R18，请修改配置后操作！")
             return False
+        else:
+            if isinstance(event, GroupMessageEvent):
+                flag = any(True if str(_) == str(event.group_id) else False for _ in BAN_PIXIV_R18)
+                if flag:
+                    await bot.send(event=event, message="不支持R18，请修改配置后操作！")
+                    return False
+                return True
     elif isinstance(PIXIV_R18, list):
         if isinstance(event, GroupMessageEvent):
-            flag = any(True if str(x) == str(event.group_id) else False for x in PIXIV_R18)
+            flag = any(True if str(_) == str(event.group_id) else False for _ in PIXIV_R18)
             if not flag:
                 await bot.send(event=event, message="不支持R18，请修改配置后操作！")
             return flag
@@ -122,17 +131,14 @@ async def fetch(session, url, name):
 
 
 async def main(PID):
-    url = f"https://api.obfs.dev/api/pixiv/illust?id={PID}"
+    url = f"https://www.pixiv.net/ajax/illust/{PID}"
     async with aiohttp.ClientSession() as session:
         resp = await session.get(url=url, headers=headersCook, proxy=proxy_aiohttp)
         content = await resp.json()
+        # print(content)
         if content.get('error'):
             return
-        url = content.get('illust').get('meta_single_page')
-        if url:
-            url = url.get('original_image_url')
-        else:
-            url = content.get('illust').get('meta_pages')[0].get('image_urls').get('original')
+        url = content.get('body').get('urls').get('original')
         name = url[url.rfind("/") + 1:]
         # 后缀
         suffix = name.split(".")[1]
@@ -266,7 +272,6 @@ async def check_GIF(PID: str) -> str:
             headersCook['cookie'] = pixiv_cookies
         resp = await session.get(url=url, headers=headersCook, proxy=proxy_aiohttp)
         content = await resp.json()
-        print(content)
         if content['error']:
             return "NO"
         return content['body']['originalSrc']
@@ -347,13 +352,13 @@ async def send_forward_msg_group(
 
 
 async def pan_R18(PID) -> bool:
-    url = f"https://api.obfs.dev/api/pixiv/illust?id={PID}"
+    url = f"https://www.pixiv.net/ajax/illust/{PID}"
     async with aiohttp.ClientSession() as session:
         resp = await session.get(url=url, headers=headersCook, proxy=proxy_aiohttp)
         content = await resp.json()
         if content.get('error'):
             return False
-        tag = content['illust']['tags'][0]['name']
+        tag = content['body']['tags']['tags'][0]['tag']
         if tag == 'R-18':
             return True
         else:
