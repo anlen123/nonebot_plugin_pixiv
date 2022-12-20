@@ -67,6 +67,8 @@ PIXIV_COOKIES=xxx
 
 PIXIV_R18=True
 
+BAN_PIXIV_R18=[]
+
 分别是:
 
 1.保存图片的根目录
@@ -78,6 +80,16 @@ PIXIV_R18=True
 4.你的p站的cookies (不配置不支持R18)
 
 5.是否支持R18 （默认支持）
+
+6.如果PIXIV_R18为True的情况下，设置黑名单（群号）
+
+PS： R18支持两种配置方式
+
+PIXIV_R18=True # 为所有群启用R18
+
+PIXIV_R18=False # 不启用R18
+
+PIXIV_R18=["123", "456"] #只为群123 和 群456启用r18
 
 
 
