@@ -4,16 +4,12 @@ from nonebot.rule import Rule
 from nonebot.plugin import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, Event, Message, MessageSegment, GroupMessageEvent
 import aiohttp, re, os, random, cv2, asyncio, base64
-import sqlite3,time
-from nonebot import get_bot
 
 from nonebot import require
-require("nonebot_plugin_apscheduler")
-from nonebot_plugin_apscheduler import scheduler
 
+require("nonebot_plugin_apscheduler")
 global_config = nonebot.get_driver().config
 config = global_config.dict()
-
 
 imgRoot = config.get('imgroot') if config.get('imgroot') else f"{os.environ['HOME']}/"
 proxy_aiohttp = config.get('aiohttp') if config.get('aiohttp') else ""
@@ -148,7 +144,8 @@ async def main(PID):
 
         if not url:
             print("官方api没找到尝试用第三方api")
-            resp2 = await session.get(url=f"https://api.obfs.dev/api/pixiv/illust?id={PID}", headers=headersCook, proxy=proxy_aiohttp)
+            resp2 = await session.get(url=f"https://api.obfs.dev/api/pixiv/illust?id={PID}", headers=headersCook,
+                                      proxy=proxy_aiohttp)
             cc = await resp2.json()
             if cc.get('error'):
                 return
@@ -159,7 +156,6 @@ async def main(PID):
                 url = cc.get('illust').get('meta_pages')[0].get('image_urls').get('original')
         else:
             print("使用官方api")
-
 
         name = url[url.rfind("/") + 1:]
         # 后缀
@@ -387,81 +383,3 @@ async def pan_R18(PID) -> bool:
         else:
             print("不是R-18")
             return False
-            
-
-async def pixiv_user_request():
-    async with aiohttp.ClientSession() as session:
-        url = f"https://api.acgmx.com/public/search/users/illusts?id=6306261&offset=1"
-        async with session.get(url) as response:
-            if response.status == 200:
-                result = await response.json()
-                return result
-            else:
-                return None
-
-
-
-
-class PixivDB:
-    def __init__(self, db_file='my_pixiv.db'):
-        self.conn = sqlite3.connect(db_file)
-        self.cursor = self.conn.cursor()
-
-    def create_table(self):
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS pixiv
-                            (pixiv_id INTEGER)''')
-        self.conn.commit()
-        print("表已创建")
-
-    def insert_data(self, pixiv_value):
-        self.cursor.execute(f"INSERT INTO pixiv VALUES ('{pixiv_value}')")
-        self.conn.commit()
-        print(f"已插入数据: {pixiv_value}")
-
-    def select_data(self):
-        self.cursor.execute('SELECT pixiv_id FROM pixiv')
-        result = self.cursor.fetchone()
-        if result:
-            pixiv_value = result[0]
-            print(f"查询结果为: {pixiv_value}")
-        else:
-            print("表中没有任何数据")
-
-    def delete_data(self):
-        self.cursor.execute('DELETE FROM pixiv')
-        self.conn.commit()
-        print("已删除所有数据")
-
-    def is_pixiv_exist(self, pixiv_id):
-        self.cursor.execute(f"SELECT EXISTS(SELECT 1 FROM pixiv WHERE pixiv_id = '{pixiv_id}')")
-        return bool(self.cursor.fetchone()[0])
-
-    def close(self):
-        self.cursor.close()
-        self.conn.close()
-
-@scheduler.scheduled_job("cron", minute="*/1", id="pixiv_user_job", args=[1], kwargs={arg2: 2})
-async def pixiv_user_job(arg1: int, arg2: int):
-    db = PixivDB()
-    db.create_table()
-    bot = nonebot.get_bot()
-    result = await pixiv_user_request()
-    if result.get('illusts'):
-        data = result['illusts']
-        for d in data[:5]:
-            create_date = d['create_date']
-            dt = datetime.fromisoformat(create_date)
-            timestamp = dt.timestamp()
-            if(((time.time()-timestamp)//60//24//60)<=2):
-                img_pixiv = d['id']
-                if not pd.is_pixiv_exist(img_pixiv):
-                    event = GroupMessageEvent()
-                    event.group_id='68724983'
-                    await send(img_pixiv,bot,event)
-                    pd.insert_data(img_pixiv)
-                time.sleep(3)
-    else:
-        print("请求pixiv API失败")
-    db.close()
-
-
