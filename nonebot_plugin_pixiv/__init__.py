@@ -3,7 +3,7 @@ from typing import List
 from nonebot.rule import Rule
 from nonebot.plugin import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, Event, Message, MessageSegment, GroupMessageEvent
-import aiohttp, re, os, random, cv2, asyncio, base64
+import aiohttp, re, os, random, cv2, asyncio, base64, platform
 
 from nonebot import require
 
@@ -304,8 +304,8 @@ async def GIF_send(url: str, PID: str, event: Event, bot: Bot):
             chang = int(msg.split(" ")[-3]) // 2
             kuan = int(msg.split(" ")[-1]) // 2
             await run(f"{ffmpeg} -i {path_pre}/{PID}.gif -s {chang}x{kuan} {path_pre}/{PID}_temp.gif")
-            await run(f"rm -rf {path_pre}/{PID}.gif")
-            await run(f"mv {path_pre}/{PID}_temp.gif {path_pre}/{PID}.gif")
+            os.remove(f"{path_pre}/{PID}.gif")
+            os.rename(f"{path_pre}/{PID}_temp.gif {path_pre}/{PID}.gif")
             size = os.path.getsize(f"{path_pre}/{PID}.gif")
         try:
             await bot.send(event=event, message=MessageSegment.image(await base64_path(f"{path_pre}/{PID}.gif")))
@@ -322,9 +322,12 @@ async def GIF_send(url: str, PID: str, event: Event, bot: Bot):
                     f.write(content)
                 if not os.path.exists(f"{path_pre}"):
                     os.mkdir(f"{path_pre}")
-            await run(f"unzip -n {path_pre}.zip -d {path_pre}")
+            if platform.system()=='Windows':
+                await run(f"tar -xf {path_pre}.zip -C {path_pre}")
+            else:
+                await run(f"unzip -n {path_pre}.zip -d {path_pre}")
             image_list = sorted(os.listdir(f"{path_pre}"))
-            await run(f"rm -rf {path_pre}.zip")
+            os.remove(f"{path_pre}.zip")
             await run(f"{ffmpeg} -r {len(image_list)} -i {path_pre}/%06d.jpg {path_pre}/{PID}.gif -n")
             # 压缩
             size = os.path.getsize(f"{path_pre}/{PID}.gif")
@@ -333,8 +336,8 @@ async def GIF_send(url: str, PID: str, event: Event, bot: Bot):
                 chang = int(msg.split(" ")[-3]) // 2
                 kuan = int(msg.split(" ")[-1]) // 2
                 await run(f"{ffmpeg} -i {path_pre}/{PID}.gif -s {chang}x{kuan} {path_pre}/{PID}_temp.gif")
-                await run(f"rm -rf {path_pre}/{PID}.gif")
-                await run(f"mv {path_pre}/{PID}_temp.gif {path_pre}/{PID}.gif")
+                os.remove(f"{path_pre}/{PID}.gif")
+                os.rename(f"{path_pre}/{PID}_temp.gif {path_pre}/{PID}.gif")
                 size = os.path.getsize(f"{path_pre}/{PID}.gif")
             try:
                 await bot.send(event=event, message=MessageSegment.image(await base64_path(f"{path_pre}/{PID}.gif")))
