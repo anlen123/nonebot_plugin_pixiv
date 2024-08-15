@@ -94,7 +94,7 @@ async def pixiv_URL(bot: Bot, event: Event):
     PID = re.findall("https://www.pixiv.net/artworks/(\d+)|illust_id=(\d+)", str(event.get_message()))
     if PID:
         PID = [x for x in PID[0] if x][0]
-        if not validate_r18(bot, event, PID):
+        if not await validate_r18(bot, event, PID):
             return
         xx = (await check_GIF(PID))
         if xx != "NO":
