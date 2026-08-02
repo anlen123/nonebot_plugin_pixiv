@@ -3,6 +3,7 @@ from typing import List
 from nonebot.rule import Rule
 from nonebot.plugin import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, Event, Message, MessageSegment, GroupMessageEvent
+import aiohttp, re, os, random, cv2, asyncio, base64, platform
 import aiohttp, re, os, random, cv2, asyncio, base64
 
 from PIL import Image
@@ -94,7 +95,7 @@ async def pixiv_URL(bot: Bot, event: Event):
     PID = re.findall("https://www.pixiv.net/artworks/(\d+)|illust_id=(\d+)", str(event.get_message()))
     if PID:
         PID = [x for x in PID[0] if x][0]
-        if not validate_r18(bot, event, PID):
+        if not await validate_r18(bot, event, PID):
             return
         xx = (await check_GIF(PID))
         if xx != "NO":
@@ -307,9 +308,21 @@ async def check_GIF(PID: str) -> str:
 
 
 async def GIF_send(url: str, PID: str, event: Event, bot: Bot):
-    path_pre = f"{imgRoot}QQbotFiles\pixivZip\{PID}"
-    if os.path.exists(f"{path_pre}\{PID}.gif"):
-        await send_big_img(path_pre, PID, event, bot)
+    path_pre = f"{imgRoot}QQbotFiles/pixivZip/{PID}"
+    if os.path.exists(f"{path_pre}/{PID}.gif"):
+        size = os.path.getsize(f"{path_pre}/{PID}.gif")
+        while size // 1024 // 1024 >= 15:
+            msg = await run(f"file {path_pre}/{PID}.gif")
+            chang = int(msg.split(" ")[-3]) // 2
+            kuan = int(msg.split(" ")[-1]) // 2
+            await run(f"{ffmpeg} -i {path_pre}/{PID}.gif -s {chang}x{kuan} {path_pre}/{PID}_temp.gif")
+            await run(f"rm -rf {path_pre}/{PID}.gif")
+            await run(f"mv {path_pre}/{PID}_temp.gif {path_pre}/{PID}.gif")
+            size = os.path.getsize(f"{path_pre}/{PID}.gif")
+        try:
+            await bot.send(event=event, message=MessageSegment.image(await base64_path(f"{path_pre}/{PID}.gif")))
+        except:
+            await bot.send(event=event, message="查询失败, 帐号有可能发生风控，请检查")
         return
     async with aiohttp.ClientSession() as session:
         response = await session.get(url=url, headers=headersCook, proxy=proxy_aiohttp)
@@ -321,26 +334,27 @@ async def GIF_send(url: str, PID: str, event: Event, bot: Bot):
                     f.write(content)
                 if not os.path.exists(f"{path_pre}"):
                     os.mkdir(f"{path_pre}")
-            await run(f"unzip -n {path_pre}.zip -d {path_pre}")
+            if platform.system()=='Windows':
+                await run(f"tar -xf {path_pre}.zip -C {path_pre}")
+            else:
+                await run(f"unzip -n {path_pre}.zip -d {path_pre}")
             image_list = sorted(os.listdir(f"{path_pre}"))
-            await run(f"del {path_pre}.zip")
-            print(f"{ffmpeg} -r {len(image_list)} -i {path_pre}\%06d.jpg -pix_fmt rgb24  {path_pre}\{PID}.gif -n")
-            await run(f"{ffmpeg} -r {len(image_list)} -i {path_pre}\%06d.jpg -pix_fmt rgb24 {path_pre}\{PID}.gif -n")
+            await run(f"rm -rf {path_pre}.zip")
+            await run(f"{ffmpeg} -r {len(image_list)} -i {path_pre}/%06d.jpg {path_pre}/{PID}.gif -n")
             # 压缩
-            await send_big_img(path_pre, PID, event, bot)
-
-
-async def send_big_img(path_pre: str, PID: str, event: Event, bot: Bot):
-    size = os.path.getsize(f"{path_pre}\{PID}.gif")
-    while size // 1024 // 1024 >= 15:
-        await bot.send(event=event, message="图片太大不给发, 随便来一张吧")
-        await bot.send(event=event, message=MessageSegment.image(await base64_path(f"{path_pre}\\000000.jpg")))
-        return
-    try:
-        await bot.send(event=event, message=MessageSegment.image(await base64_path(f"{path_pre}\{PID}.gif")))
-    except:
-        await bot.send(event=event, message="查询失败, 帐号有可能发生风控，请检查")
-    return
+            size = os.path.getsize(f"{path_pre}/{PID}.gif")
+            while size // 1024 // 1024 >= 15:
+                msg = await run(f"file {path_pre}/{PID}.gif")
+                chang = int(msg.split(" ")[-3]) // 2
+                kuan = int(msg.split(" ")[-1]) // 2
+                await run(f"{ffmpeg} -i {path_pre}/{PID}.gif -s {chang}x{kuan} {path_pre}/{PID}_temp.gif")
+                await run(f"rm -rf {path_pre}/{PID}.gif")
+                await run(f"mv {path_pre}/{PID}_temp.gif {path_pre}/{PID}.gif")
+                size = os.path.getsize(f"{path_pre}/{PID}.gif")
+            try:
+                await bot.send(event=event, message=MessageSegment.image(await base64_path(f"{path_pre}/{PID}.gif")))
+            except:
+                await bot.send(event=event, message="查询失败, 帐号有可能发生风控，请检查")
 
 
 async def run(cmd: str):
